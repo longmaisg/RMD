@@ -1,2 +1,3 @@
-# RMD
-RMD: Reverse-mode differentiation
+This is the code for RMD (Reverse-mode differentiation). 
+
+For detailed explanation, visit my article on Medium: ...
