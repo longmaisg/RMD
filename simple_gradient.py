@@ -25,7 +25,7 @@ w = tf.Variable(tf.random_normal(shape=[3, 1], mean=0, stddev=0.05))
 
 # prediction and loss
 pred = tf.matmul(x, w)
-loss = tf.square(y - pred)
+loss = tf.reduce_sum(tf.square(y - pred))
 
 # # method 1
 # optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
