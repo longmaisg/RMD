@@ -25,8 +25,7 @@ w = tf.Variable(tf.random_normal(shape=[3, 1], mean=0, stddev=0.05))
 
 # prediction and loss
 pred = tf.matmul(x, w)
-loss = tf.square(y - pred)
-sum_loss = tf.reduce_sum(loss)
+loss = tf.reduce_sum(tf.square(y - pred))
 
 # method 3 - update weights
 var_list = [w]
@@ -38,7 +37,6 @@ assign_op_w = w.assign(w_update)
 # update lr
 pred_t1 = tf.matmul(x, update_w)
 loss_t1 = tf.square(y - pred_t1)
-sum_loss_t1 = tf.reduce_sum(loss_t1)
 
 alpha = tf.constant(0.0001)
 optimizer = tf.train.GradientDescentOptimizer(learning_rate=alpha)
@@ -54,7 +52,7 @@ with tf.Session() as sess:
     lr_all = []
     for i in range(50):
         _w_t = sess.run(w)
-        _lr, l, _grad_w_t, _w_update, _ = sess.run([lr, sum_loss, grad_w, update_w, update_lr], feed_dict={x: X, y: Y})
+        _lr, l, _grad_w_t, _w_update, _ = sess.run([lr, loss, grad_w, update_w, update_lr], feed_dict={x: X, y: Y})
         l_all.append(l)
         lr_all.append(_lr)
         print(l, '\t', _lr)
