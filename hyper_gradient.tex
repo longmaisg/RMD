@@ -1,0 +1,132 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{algorithm}% http://ctan.org/pkg/algorithm
+\usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
+
+\title{Hyper-gradients}
+\author{Tieu Long Mai, Ph.D student, University of Luxembourg }
+\date{February 2020}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+$y = x_1x_2 + x_2^2$
+\newline
+\newline
+$v_1 = x_1 \\
+v_2 = x_2 \\
+v_3 = v_1v_2 = x_1x_2 \\
+v_4 = v_2^2 = x_2^2 \\
+v_5 = v_3 + v_4 = x_1x_2 + x_2^2$
+\newline
+\newline
+$\dot{v_1} = \frac{\partial(x_1)}{\partial(x_2)} = 0 \\
+\dot{v_2} = \frac{\partial(x_2)}{\partial(x_2)} = 1 \\
+\dot{v_3} = \frac{\partial(v_1v_2)}{\partial(v_2)}\ 
+= \dot{v_1}v_2 + v_2\dot{v_1} = 0\times 2 + 1 \times 1 = 1 \\
+\dot{v_4} = \frac{\partial(v_2^2)}{\partial(v_2)} =\ 
+2\dot{v_2}v_2 = 4 \\
+\dot{v_5} = \dot{v_3} + \dot{v_4} = 1 + 4 = 5$
+\newline
+\newline
+$\bar{v_i} = \frac{\partial(y_j)}{\partial(v_i)}\ 
+= \sum_p \bar{v_p}\frac{\partial(v_p)}{\partial(v_i)}$
+\newline
+\newline
+$\bar{v_5} = \bar{y} = 1 \\
+\bar{v_4} = \bar{v_5}\frac{\partial(v_5)}{\partial(v_4)} = 1 \\
+\bar{v_3} = \bar{v_5}\frac{\partial(v_5)}{\partial(v_3)} = 1 \\
+\bar{v_2} = \bar{v_4}\frac{\partial(v_4)}{\partial(v_2)} + \bar{v_3}\frac{\partial(v_3)}{\partial(v_2)} = 2v_2 + v_1 = 2 \times 2 + 1 = 5 \\
+\bar{v_1} = \bar{v_3}\frac{\partial(v_3)}{\partial(v_3)} = v_2 = 2$
+\newline
+\newline
+$Initialize: w_1, \alpha, \theta, L(w, \theta, t) \\
+t = 1: w_2 = w_1 - \alpha \nabla_w L(w_1, \theta, 1) \\
+t = 2: w_3 = w_2 - \alpha \nabla_w L(w_2, \theta, 2) \\
+t = 3: w_4 = w_3 - \alpha \nabla_w L(w_3, \theta, 3)$
+\newline
+\newline
+$Evaluation loss: f(w_4)$
+\newline
+\newline
+\newline
+$v_1 = w_1 \\
+v_2 = \alpha \\
+v_3 = \theta \\
+v_4 = w_2 = w_1 - \alpha \nabla_w L(w_1, \theta, 1) = v_1 - v_2 \nabla_w L(v_1, v_3, 1) \\
+v_5 = w_3 = w_2 - \alpha \nabla_w L(w_2, \theta, 2) = v_4 - v_2 \nabla_w L(v_4, v_3, 1) \\
+v_6 = w_4 = w_3 - \alpha \nabla_w L(w_3, \theta, 1) = v_5 - v_2 \nabla_w L(v_5, v_3, 1) \\
+v_7 = f(w_4) = f(v_6)$
+\newline
+\newline
+$\bar{v_7} = \bar{f} = 1 \\
+\bar{v_6} = \bar{v_7} \frac{\partial(v_7)}{\partial(v_6)}\ 
+= 1 \times \frac{\partial(f(w_4)}{\partial(w_4)} = \nabla_w f(w_4) \\
+\bar{v_5} = \bar{v_6} \frac{\partial(v_6)}{\partial(v_5)}\ 
+= \bar{v_6}(1 - \alpha \nabla_w \nabla_w L(w_3,\theta,3)) \\
+\bar{v_4} = \bar{v_5} \frac{\partial(v_5)}{\partial(v_4)}\ 
+= \bar{v_5}(1 - \alpha \nabla_w \nabla_w L(w_2,\theta,2)) \\
+\bar{v_1} = \bar{v_4} \frac{\partial(v_4)}{\partial(v_1)}\ 
+= \bar{v_4}(1 - \alpha \nabla_w \nabla_w L(w_1,\theta,1)) = \frac{\partial(f)}{\partial(w_1)} \\
+\bar{v_2} = \bar{v_6} \frac{\partial(v_6)}{\partial(v_2)} +\ 
+\bar{v_5} \frac{\partial(v_5)}{\partial(v_2)} +\ 
+\bar{v_4} \frac{\partial(v_4)}{\partial(v_2)} = 
+\bar{v_6}(-\nabla_w L(w_3,\theta,3)) +\ 
+\bar{v_5}(-\nabla_w L(w_2,\theta,2)) +\ 
+\bar{v_4}(-\nabla_w L(w_1,\theta,1)) = \frac{\partial(f)}{\partial(\alpha)} \\
+\bar{v_3} = \bar{v_6} \frac{\partial(v_6)}{\partial(v_3)} +\ 
+\bar{v_5} \frac{\partial(v_5)}{\partial(v_3)} +\ 
+\bar{v_4} \frac{\partial(v_4)}{\partial(v_3)} =\ 
+\bar{v_6}(-\alpha \nabla_{\theta} \nabla_w L(w_3,\theta,3)) +\ 
+\bar{v_5}(-\alpha \nabla_{\theta} \nabla_w L(w_2,\theta,2)) +\ 
+\bar{v_4}(-\alpha \nabla_{\theta} \nabla_w L(w_1,\theta,1)) = \frac{\partial(f)}{\partial(\theta)}$
+\newline
+\newline
+$t = 4: dw = \nabla_{w} f(w_4), d\alpha = 0, d\theta = 0 \newline \\ 
+t = 3: g_3 = \nabla_{w} L(w_3,\theta,3)\\
+d\alpha = d\alpha - dw^T g_3 = d\alpha - dw^T \nabla_{w} L(w_3,\theta,3)\\ 
+d\theta = d\theta - \alpha dw \nabla_{\theta} g_3 = d\theta - \alpha dw \nabla_{\theta} \nabla_{w} L(w_3,\theta,3)\\ 
+dw = dw (1 - \alpha \nabla_w g_3) = dw - \alpha dw \nabla_w \nabla_{w} L(w_3,\theta,3)) \newline \\
+t = 2: g_2 = \nabla_{w} L(w_2,\theta,2)\\
+d\alpha = d\alpha - dw^T g_2 = d\alpha - dw^T \nabla_{w} L(w_2,\theta,2)\\ 
+d\theta = d\theta - \alpha dw \nabla_{\theta} g_2 = d\theta - \alpha dw \nabla_{\theta} \nabla_{w} L(w_2,\theta,2)\\ 
+dw = dw (1 - \alpha \nabla_w g_2) = dw - \alpha dw \nabla_w \nabla_{w} L(w_2,\theta,2)) \newline \\
+t = 1: g_1 = \nabla_{w} L(w_1,\theta,1)\\
+d\alpha = d\alpha - dw^T g_1 = d\alpha - dw^T \nabla_{w} L(w_1,\theta,1)\\ 
+d\theta = d\theta - \alpha dw \nabla_{\theta} g_1 = d\theta - \alpha dw \nabla_{\theta} \nabla_{w} L(w_1,\theta,1)\\ 
+dw = dw (1 - \alpha \nabla_w g_1) = dw - \alpha dw \nabla_w \nabla_{w} L(w_1,\theta,1))$
+\newline
+\newline
+
+
+\begin{algorithm}
+  \caption{Gradient descent}\label{SGD}
+  \begin{algorithmic}[1]
+    \State \textbf{Input: } $\textbf{w}_1, \alpha, \theta, L(\textbf{w}, \theta, t)$
+      \For{$t = 1$ to $T-1$}
+        \State $\textbf{w}_{t+1} = \textbf{w}_t - \alpha \nabla_{\textbf{w}} L(\textbf{w}_t, \theta, t)$
+      \EndFor
+      \State \textbf{return} $\textbf{w}_T$
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{Reverse-mode differentiation of Gradient descent}\label{SGD}
+  \begin{algorithmic}[1]
+    \State \textbf{Input: } $\textbf{w}_T, \alpha, \theta, L(\textbf{w}, \theta, t), 
+    \textrm{meta-loss } f(\textbf{w})$
+    \State \textrm{Initialize $d\textbf{w} = \nabla_{\textbf{w}} f(\textbf{w}_T), d\alpha=0, d\theta=0$}
+      \For{$t = T - 1$ \textbf{ counting down to } $1$}
+        \State $g(t) = \nabla_{\textbf{w}} L\textbf{w}_t, \theta, t)$
+        \State $d\alpha = d\alpha - d\textbf{w}^T g(t)$
+        \State $d\theta = d\theta - \alpha d\textbf{w} \nabla_{\theta}g(t)$
+        \State $d\textbf{w} = d\textbf{w}(1 - \alpha \nabla_{\textbf{w}} g(t))$
+      \EndFor
+      \State \textbf{return} $w_T$
+  \end{algorithmic}
+\end{algorithm}
+
+\end{document}
